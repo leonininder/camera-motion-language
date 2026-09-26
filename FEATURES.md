@@ -23,6 +23,6 @@ This is **one** Leon skill. It does not vendor Remotion, GSAP, Lottie, Shotcraft
 
 ## Later (explicitly unbuilt)
 
-- Face/person detector instead of brightness centroid
+- Face/person detector (primary gate is already `global_feature_proxy`; brightness-centroid kept as legacy only)
 - Install copy on default/小綠 Hermes profile
 - Optional keyed Remotion 9:16 procedure (separate section, never mixed into H3 prompts)

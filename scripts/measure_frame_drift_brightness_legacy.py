@@ -2,7 +2,7 @@
 """Fail a clip if upper-frame brightness centroid drifts horizontally.
 
 Threshold 0.08 of width matches 2026-09-20 recentered.mp4 (0.48 -> 0.63).
-Usage: python measure_frame_drift.py VIDEO [--times 0,0.33,0.66,0.97]
+Usage: python measure_frame_drift_brightness_legacy.py VIDEO [--times 0,0.33,0.66,0.97]
 Exit 2 = FAIL_DRIFT, 0 = PASS_LOCK, 1 = usage/io error.
 """
 from __future__ import annotations

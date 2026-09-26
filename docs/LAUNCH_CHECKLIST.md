@@ -95,6 +95,15 @@ Launch / share shell follows the shared Jarvis→Leon checklist. Do not rewrite 
 
 ---
 
+
+---
+
+## GitHub topics (applied 2026-09-26)
+
+Applied via `gh repo edit leonininder/camera-motion-language --add-topic ...`:
+
+`camera-motion`, `keyed-camera`, `sampled-i2v`, `drift-gate`, `minimax-h3`, `shot-card`, `python`, `openai-skill`, `hermes-skill`, `i2v`, `video-generation`, `computer-vision`
+
 ## Pre-flight (CML)
 
 - [x] Pitch visible in README / skill header

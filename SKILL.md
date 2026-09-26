@@ -28,10 +28,10 @@ Source freeze 2026-09-24: `references/sources.md`. Analog mappings are labeled a
 2. Sampled default: `Static Shot`. One named move only if both stills keep the subject.
 3. Drift gate: `scripts/measure_frame_drift.py` (`--intent static|authorized_camera`), fail static if proxy `> 8%` of width.
 4. Complaint routing: subject-exit is not black bars / vidstab.
-5. Filename is not evidence (`locked_*.mp4` still FAIL_DRIFT).
+5. Filename is not evidence (`locked_*.mp4` still FAIL).
 6. Upstream licenses stay in `references/sources.md`; none of their runtimes are vendored.
 
-Roadmap (not in this lock): face-centroid instead of brightness; copy install to 小綠 profile; optional Remotion 9:16 keyed path as a *separate* procedure, still not H3.
+Primary gate metric is already `global_feature_proxy` (`scripts/measure_frame_drift.py`); brightness-centroid kept as legacy only. Roadmap (not in this lock): face/person detector; copy install to 小綠 profile; optional Remotion 9:16 keyed path as a *separate* procedure, still not H3.
 
 ## When to Use
 

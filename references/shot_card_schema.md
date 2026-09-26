@@ -43,7 +43,7 @@ drift:
   threshold_pct: 8
   result: null         # PASS | FAIL | NEEDS_REVIEW | null pre-render
   drift_pct: null      # filled from measure_frame_drift.py stdout
-  script_path: "<LLM_WIKI_ROOT>/04_projects/Camera_Motion_Language/measure_frame_drift.py"
+  script_path: "scripts/measure_frame_drift.py"  # primary (repo); optional Leon-wiki: <LLM_WIKI_ROOT>/04_projects/Camera_Motion_Language/measure_frame_drift.py
 
 do_not_paste_apis: true
 ```
@@ -73,7 +73,7 @@ do_not_paste_apis: true
     "threshold_pct": 8,
     "result": null,
     "drift_pct": null,
-    "script_path": "<LLM_WIKI_ROOT>/04_projects/Camera_Motion_Language/measure_frame_drift.py"
+    "script_path": "scripts/measure_frame_drift.py"
   },
   "do_not_paste_apis": true
 }
@@ -88,6 +88,7 @@ do_not_paste_apis: true
 | `camera_authorized` | Must be true only when Leon explicitly named the verb for this shot. |
 | `subject_lock` | Both stills must keep `identity` + listed `anchors`. |
 | `drift.intent` | `static` enforces >8% FAIL; `authorized_camera` is REPORT_ONLY (`review_required=true`). |
+| `drift.script_path` | Primary = repo `scripts/measure_frame_drift.py`. Optional Leon-wiki copy: `<LLM_WIKI_ROOT>/04_projects/Camera_Motion_Language/measure_frame_drift.py`. |
 | `do_not_paste_apis` | Always `true`. Remotion/GSAP/HyperFrames/pixel2motion internals stay out of H3. |
 
 ## Check before render
@@ -96,4 +97,4 @@ do_not_paste_apis: true
 - [ ] Lane matches tooling
 - [ ] Sampled: Static unless one authorized verb
 - [ ] Still-pair identity + anchors recorded
-- [ ] Drift block points at canonical `measure_frame_drift.py`
+- [ ] Drift block `script_path` = repo `scripts/measure_frame_drift.py` (wiki path optional)

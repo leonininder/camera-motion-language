@@ -61,6 +61,13 @@ Legacy brightness-centroid gate from the initial LOCKED pack: `scripts/measure_f
 - LOCKED SOP ≠ every H3 Static clears 8%.
 - CN entry deferred — EN is canonical for now.
 
+
+## Community
+
+GitHub Issues on this repo. Wiki remains the durable operator home.
+
+**No GitHub Release yet; LOCKED status is the version signal.**
+
 ## License
 
 MIT for this skill’s text and scripts. Upstream licenses are not MIT-by-default (Remotion License, GSAP Standard). See `references/sources.md`.
