@@ -112,5 +112,17 @@ Applied via `gh repo edit leonininder/camera-motion-language --add-topic ...`:
 - [x] Evidence honesty (MEASURED vs claim)
 - [x] Share pack listed for adopters
 - [x] Link to shared process checklist (wiki path above)
-- [ ] **CN deferred** (2026-09-26): no ZH stub yet — bilingual CN entry postponed; EN SOP + checklist remain canonical
+- [x] Traditional Chinese onboarding added at `docs/README.zh-TW.md`; English SOP remains canonical
 - [ ] Dual review PASS (David + Justin Sun independently ≥9.5) on this launch-shell change set — **required before merge**
+
+## 2026-09-27 adoption revision (local, pending independent review)
+
+The public README now leads with the creator's task, includes Windows and POSIX commands, and no longer uses internal persona scores as public social proof. A Traditional Chinese entry and dependency file are included. The CLI rejects invalid parameters and returns exit 2 / NEEDS_REVIEW when sampled frames cannot be decoded or lack enough trackable features. Regression tests cover policy output and the previous featureless false PASS. A CI matrix is defined; remote CI execution is not yet verified.
+
+Outstanding release gates:
+- [ ] Independently review the exact patch; older SOP scores do not transfer.
+- [ ] Run the CI matrix on supported hosts.
+- [ ] Publish redistributable real AI-video examples with explicit permissions and human camera/subject labels.
+- [ ] Measure false positives/negatives against that labeled set; do not advertise the proxy as a subject-retention detector.
+- [ ] Have independent first-time users complete setup; record observed completion and blockers.
+- [ ] Track relevant visits, successful demos and repeat use before drawing conclusions from stars.

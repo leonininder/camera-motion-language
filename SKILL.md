@@ -13,7 +13,7 @@ metadata:
 
 # Camera motion language
 
-Status: **LOCKED** (SOP / review pack). Evidence: **MEASURED**. David R2 9.7 PASS / Justin Sun R3 9.5 PASS. Not a claim that PlanV2 Static always passes 8% (lock quartet 3 FAIL / 1 PASS).
+Status: Experimental public CLI and camera-planning SOP. Run the current regression suite and review real footage before publishing. Historical internal reviews do not certify this CLI revision.
 
 Two universes. Mixing them is how a 9:16 heroine walks out of frame while an agent "fixes black bars."
 
@@ -88,8 +88,14 @@ python scripts/measure_frame_drift.py \
 
 **Adopt without full wiki:** hand (1) this SOP, (2) `references/shot_card_schema.md`, (3) `scripts/measure_frame_drift.py`, (4) one filled shot-card, (5) one golden + expected gate line. Architecture notes stay optional (wiki).
 
-**CN deferred** (2026-09-26): no ZH stub yet — bilingual CN entry postponed; EN Publish surface above remains canonical.
+Traditional Chinese onboarding: [docs/README.zh-TW.md](docs/README.zh-TW.md). The English SOP remains canonical.
 
 ## Distribution surface
 
 Launch / share shell follows the shared Jarvis→Leon checklist. Do not rewrite LOCKED architecture claims for virality; keep SYNTHETIC vs MEASURED labels. Skill status LOCKED date ≠ product Release.
+
+### Measurement failures
+
+If sampled frames cannot be decoded or feature coverage is insufficient, the current CLI returns exit 2 and NEEDS_REVIEW. This is not PASS. Historical internal review scores apply only to their original SOP scope, not later CLI changes or public adoption claims.
+
+The proxy compares each sampled frame to the first frame (maximum median ORB displacement), as well as adjacent-sample optical flow. A pan that returns to its start is still measured at intermediate samples. Missing sufficient features in any sampled comparison requires review; motion entirely between samples can still be missed.

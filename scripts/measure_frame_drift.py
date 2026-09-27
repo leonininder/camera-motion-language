@@ -3,7 +3,7 @@
 
 IMPORTANT — what this metric IS and IS NOT
 ------------------------------------------
-Optical-flow median + ORB first/last median is a **proxy for global feature
+Optical-flow median + ORB first-to-each-sample median is a **proxy for global feature
 motion**, NOT a pure camera-only meter.
 
 - Subject motion inside a Static Shot can raise the metric (false FAIL risk).
@@ -37,6 +37,7 @@ Legacy brightness-centroid gate: scripts/measure_frame_drift_brightness_legacy.p
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 
 
@@ -70,6 +71,10 @@ def main() -> int:
         ),
     )
     args = p.parse_args()
+    if not math.isfinite(args.threshold_pct) or args.threshold_pct < 0:
+        p.error("--threshold-pct must be finite and non-negative")
+    if args.sample_frames < 2:
+        p.error("--sample-frames must be at least 2")
 
     try:
         import cv2  # type: ignore
@@ -91,6 +96,7 @@ def main() -> int:
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
     if n < 2 or w < 1:
+        cap.release()
         print("FAIL: video too short or invalid size", file=sys.stderr)
         return 2
 
@@ -99,17 +105,23 @@ def main() -> int:
     prev_pts = None
     max_disp = 0.0
     first_gray = None
-    last_gray = None
+    sampled_grays = []
+    valid_flow_pairs = 0
+    orb_pairs = 0
+    decoded_frames = 0
 
     for i in idxs:
         cap.set(cv2.CAP_PROP_POS_FRAMES, int(i))
         ok, frame = cap.read()
         if not ok:
-            continue
+            cap.release()
+            print("status=NEEDS_REVIEW\nreason=sample_decode_failed", file=sys.stderr)
+            return 2
+        decoded_frames += 1
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if first_gray is None:
             first_gray = gray
-        last_gray = gray
+        sampled_grays.append(gray)
         if prev_gray is None:
             prev_gray = gray
             prev_pts = cv2.goodFeaturesToTrack(
@@ -129,6 +141,7 @@ def main() -> int:
         good_prev = prev_pts[st.flatten() == 1]
         good_next = nxt[st.flatten() == 1]
         if len(good_prev) >= 8:
+            valid_flow_pairs += 1
             disp = np.linalg.norm(
                 good_next.reshape(-1, 2) - good_prev.reshape(-1, 2), axis=1
             )
@@ -141,25 +154,34 @@ def main() -> int:
     cap.release()
 
     end_disp = 0.0
-    if first_gray is not None and last_gray is not None:
-        orb = cv2.ORB_create(1000)
+    max_reference_disp = 0.0
+    orb = cv2.ORB_create(1000)
+    if first_gray is not None:
         k1, d1 = orb.detectAndCompute(first_gray, None)
-        k2, d2 = orb.detectAndCompute(last_gray, None)
-        if d1 is not None and d2 is not None and len(k1) and len(k2):
-            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-            matches = bf.match(d1, d2)
-            if matches:
-                matches = sorted(matches, key=lambda m: m.distance)[:50]
-                deltas = []
-                for m in matches:
-                    p1 = k1[m.queryIdx].pt
-                    p2 = k2[m.trainIdx].pt
-                    deltas.append(
-                        ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
-                    )
-                end_disp = float(np.median(deltas)) if deltas else 0.0
+        matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        for gray in sampled_grays[1:]:
+            k2, d2 = orb.detectAndCompute(gray, None)
+            if d1 is None or d2 is None:
+                continue
+            matches = matcher.match(d1, d2)
+            if len(matches) < 8:
+                continue
+            matches = sorted(matches, key=lambda m: m.distance)[:50]
+            deltas = [np.linalg.norm(np.subtract(k2[m.trainIdx].pt, k1[m.queryIdx].pt))
+                      for m in matches]
+            end_disp = float(np.median(deltas))
+            max_reference_disp = max(max_reference_disp, end_disp)
+            orb_pairs += 1
 
-    metric = max(max_disp, end_disp)
+    if decoded_frames < 2 or valid_flow_pairs != len(idxs) - 1 or orb_pairs != len(idxs) - 1:
+        print("metric_kind=global_feature_proxy")
+        print("status=NEEDS_REVIEW")
+        print("gate=INSUFFICIENT_EVIDENCE")
+        print("review_required=true")
+        print("reason=insufficient_trackable_features")
+        return 2
+
+    metric = max(max_disp, max_reference_disp)
     pct = 100.0 * metric / float(w)
 
     # Always print metric provenance first (machine-parseable).
@@ -169,6 +191,7 @@ def main() -> int:
     print(f"frame_width={w} height={h} frames={n}")
     print(f"median_flow_disp_px={max_disp:.3f}")
     print(f"first_last_orb_disp_px={end_disp:.3f}")
+    print(f"max_first_sample_orb_disp_px={max_reference_disp:.3f}")
     print(f"drift_pct_of_width={pct:.3f}")
     print(f"threshold_pct={args.threshold_pct}")
 

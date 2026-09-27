@@ -1,73 +1,93 @@
-# camera-motion-language
+# Camera Motion Language
 
-> Split keyed vs sampled camera; default Static Shot; enforce 8% drift.
+**Check unwanted motion in AI video before you publish.**
 
-Status: **LOCKED** SOP / review pack (2026-09-24). Evidence: **MEASURED**.  
-Lock (SOP pack @ `8895185`): David R2 9.7 PASS / Justin Sun R3 9.5 PASS.  
-This lock is **not** a claim that PlanV2 Static always passes the 8% gate. Measured lock quartet: **3 FAIL / 1 PASS**.
+A local Python CLI and optional agent skill for creators checking image-to-video clips. Measure a global feature-motion proxy, flag clips above your threshold, and send intentional camera moves for review. Runs on your own video files; no API key, GPU, or Hermes installation is needed for the CLI.
 
-Launch-shell updates (docs, goldens, proxy gate CLI) ship on branch PRs and need a **fresh** David + Justin Sun independently ≥9.5 before merge to `main`.
+[繁體中文](docs/README.zh-TW.md) · [Agent skill](SKILL.md) · [Synthetic examples](golden_clips/README.md)
 
-Leon’s **one** Hermes skill for camera: classify **keyed vs sampled**, default H3 to **static**, fail clips that drift.
+| Your intent | What the CLI does | Next step |
+|---|---|---|
+| Keep the shot static | PASS or FAIL against an 8% default threshold | Review the actual subject and framing before publishing |
+| Make an intentional pan / tilt / dolly | NEEDS_REVIEW, with the measured motion | Confirm the move matches your shot plan |
+| Video cannot be measured reliably | NEEDS_REVIEW, exit 2 | Inspect the file or use a visual review |
 
-Not a fork of Remotion / GSAP / Lottie / Shotcraft / Pixel2Motion / HyperFrames. Those are cited in `references/sources.md` only.
+The metric tracks **global feature motion**, so a moving subject can trigger a false alarm. It does not detect faces, prove subject containment, stabilize footage, or generate video. The 8% default is a project policy, not a validated universal quality threshold.
 
-Wiki entry: `04_projects/Camera_Motion_Language/` and `07_skills/camera_motion_language_skill_en.md`.
+## Try the included demo
 
-## Surfaces
+Install Python 3.10 or newer and Git. From a terminal:
 
-| Surface | What |
-|---------|------|
-| Skill SOP | [`SKILL.md`](SKILL.md) |
-| Drift gate | [`scripts/measure_frame_drift.py`](scripts/measure_frame_drift.py) |
-| SYNTHETIC goldens | [`golden_clips/`](golden_clips/) |
-| Shot-card schema | [`references/shot_card_schema.md`](references/shot_card_schema.md) |
-| Launch checklist | [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md) |
-| Features / non-goals | [`FEATURES.md`](FEATURES.md) |
-
-No hero GIF in-repo yet — use the one-command golden demo below (honest terminal output). Do not invent demo media.
-
-## Install (Hermes)
-
-Copy this folder to:
-
-`%LOCALAPPDATA%/hermes/profiles/<profile>/skills/creative/camera-motion-language/`
-
-New session to load. Wiki fallback (any LLM): Leon LLM Wiki `07_skills/camera_motion_language_skill_en.md`.
-
-## Drift gate (&lt;2 min demo)
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install opencv-python-headless numpy
-.venv/bin/python scripts/measure_frame_drift.py \
-  --video golden_clips/static_hold.mp4 \
-  --intent static --threshold-pct 8
-# expect: status=PASS  gate=ENFORCE  (SYNTHETIC fixture)
+```sh
+git clone https://github.com/leonininder/camera-motion-language.git
+cd camera-motion-language
+python -m venv .venv
 ```
 
-- `--intent static` — FAIL if drift proxy **> 8% of frame width** (exit 1).
-- `--intent authorized_camera` — REPORT_ONLY; never auto-PASS (exit 0).
-- Metric is a **global feature-motion proxy**, not pure camera-only. Subject motion can false-FAIL a Static Shot → vision strip required.
-- Forbidden “fixes”: vidstab, letterbox/black bars, crop-to-hide.
+**Windows PowerShell:**
 
-Goldens are **SYNTHETIC** (see `golden_clips/README.md`). Real H3 rows live in the wiki `drift_evidence_en.md` (**MEASURED**).
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts/measure_frame_drift.py --video golden_clips/static_hold.mp4 --intent static
+```
 
-Legacy brightness-centroid gate from the initial LOCKED pack: `scripts/measure_frame_drift_brightness_legacy.py`.
+**macOS / Linux:**
 
-## Honesty
+```sh
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python scripts/measure_frame_drift.py --video golden_clips/static_hold.mp4 --intent static
+```
 
-- No fake GIF / fabricated stars / sponsor logos.
-- SYNTHETIC goldens ≠ MiniMax H3 exports.
-- LOCKED SOP ≠ every H3 Static clears 8%.
-- CN entry deferred — EN is canonical for now.
+Expected key lines:
 
+```text
+drift_pct_of_width=0.000
+status=PASS
+gate=ENFORCE
+```
 
-## Community
+The included clips are **synthetic OpenCV fixtures**, not real AI-video outputs. Try `golden_clips/pan_authorized.mp4` with `--intent static` for a FAIL, then use `--intent authorized_camera` for NEEDS_REVIEW. Replace the fixture path with your own MP4 or MOV.
 
-GitHub Issues on this repo. Wiki remains the durable operator home.
+## Read the result correctly
 
-**No GitHub Release yet; LOCKED status is the version signal.**
+| Exit code | Status | Meaning |
+|---|---|---|
+| 0 | PASS | The sampled proxy is within the threshold for static intent |
+| 0 | NEEDS_REVIEW | Intentional motion is reported, never auto-approved |
+| 1 | FAIL | Static intent exceeds the selected threshold |
+| 2 | NEEDS_REVIEW or error | Insufficient features, unreadable video, invalid options, or missing dependencies |
 
-## License
+**Do not treat exit 0 alone as approval.** Check both `status` and `gate` when integrating with automation. Low texture, failed frame decoding, or insufficient tracked features cannot produce PASS. Each sampled frame after the first needs at least eight ORB matches to the first frame, and each adjacent sample pair needs at least eight flow tracks.
 
-MIT for this skill’s text and scripts. Upstream licenses are not MIT-by-default (Remotion License, GSAP Standard). See `references/sources.md`.
+The proxy takes the larger of sampled adjacent-frame median optical flow and maximum first-to-sampled-frame ORB displacement, normalized by frame width. Comparing every sample against the first catches movement that returns to its start. It can still miss motion between samples, and ORB mismatches can inflate results. A PASS is a screening result, not proof of camera lock or identity preservation. Increase `--sample-frames` when useful, and inspect the clip visually.
+
+## Plan the shot before generating
+
+1. For authored animation, key exact camera values in your animation tool.
+2. For AI-generated video, start with a static camera unless you want one named move.
+3. Keep the subject visible in both endpoint stills; review the entire output afterward.
+4. Run the gate, then inspect flagged clips. Rework the prompt or endpoint images when framing is wrong.
+
+A starter camera line: `Static Shot. Stationary camera. Only the person moves. Set stays fixed.` This is prompt guidance, not a guarantee that a video model will obey it. See the [shot-card schema and example](references/shot_card_schema.md).
+
+## Use with an agent
+
+The [self-contained skill](SKILL.md) explains keyed versus sampled camera motion and the review workflow. Read it in any file-capable agent. For Hermes, copy this repository to `%LOCALAPPDATA%/hermes/profiles/<profile>/skills/creative/camera-motion-language/` and start a new session. Private operator notes are optional historical context; the CLI and examples work without them.
+
+## Verification and contributions
+
+Using the Python interpreter from your virtual environment, run:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Substitute `.venv/bin/python` or `.\.venv\Scripts\python.exe` if you have not activated the environment. Tests cover included pass/fail/report-only clips, featureless input, missing files, and invalid CLI settings.
+
+Useful contributions: a redistributable real video with your camera intent, observed framing, CLI output, and permission to publish; a reproducible false positive or false negative; or clearer onboarding. [Open an issue](https://github.com/leonininder/camera-motion-language/issues) with the command, Python/OpenCV versions, and expected result. Never upload private footage without permission.
+
+## Project status and license
+
+Early public tool with synthetic regression fixtures. Real-video accuracy and subject-retention benchmarks remain open work. Earlier internal SOP review scores do not establish public adoption, benchmark accuracy, or independent endorsement. See [release-readiness work](docs/LAUNCH_CHECKLIST.md).
+
+MIT for this repository's original text and scripts. Referenced animation libraries have their own licenses; see [sources](references/sources.md). The historical brightness-centroid implementation remains in `scripts/measure_frame_drift_brightness_legacy.py` for comparison.
