@@ -56,7 +56,7 @@ CML does **not** claim Built-with-Jev unless a future gate literally calls Syste
 
 ## Sponsor / social-proof
 
-Omit or `TODO` — never invent logos. Review scores (Justin / David) may be cited only as written for the LOCKED SOP pack (David R2 9.7 / Justin Sun R3 9.5 on 2026-09-24). **This launch-shell PR needs a fresh dual ≥9.5** before merge to `main`.
+Omit or `TODO` — never invent logos. Review scores (Justin / David) may be cited only as written for the LOCKED SOP pack (David R2 9.7 / Justin Sun R3 9.5 on 2026-09-24). A stable-quality claim still needs a fresh dual ≥9.5 review. Leon authorized publishing the 2026-09-27 improvements as an experimental version; that authorization does not change the unmet quality scores.
 
 ---
 
@@ -117,7 +117,7 @@ Applied via `gh repo edit leonininder/camera-motion-language --add-topic ...`:
 
 ## 2026-09-27 adoption revision (local, pending independent review)
 
-The public README now leads with the creator's task, includes Windows and POSIX commands, and no longer uses internal persona scores as public social proof. A Traditional Chinese entry and dependency file are included. The CLI rejects invalid parameters and returns exit 2 / NEEDS_REVIEW when sampled frames cannot be decoded or lack enough trackable features. Regression tests cover policy output and the previous featureless false PASS. A CI matrix is defined; remote CI execution is not yet verified.
+The public README now leads with the creator's task, includes Windows and POSIX commands, and no longer uses internal persona scores as public social proof. A Traditional Chinese entry and dependency file are included. The CLI rejects invalid parameters and returns exit 2 / NEEDS_REVIEW when sampled frames cannot be decoded or lack enough trackable features. Regression tests cover policy output and the previous featureless false PASS. Local regression tests are available. Publishing and running a CI matrix remains pending.
 
 Outstanding release gates:
 - [ ] Independently review the exact patch; older SOP scores do not transfer.
