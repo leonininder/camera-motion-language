@@ -4,7 +4,7 @@
 
 A local Python CLI and optional agent skill for creators checking image-to-video clips. Measure a global feature-motion proxy, flag clips above your threshold, and send intentional camera moves for review. Runs on your own video files; no API key, GPU, or Hermes installation is needed for the CLI.
 
-[繁體中文](docs/README.zh-TW.md) · [Agent skill](SKILL.md) · [Synthetic examples](golden_clips/README.md)
+[繁體中文](docs/README.zh-TW.md) · [Agent skill](SKILL.md) · [Synthetic examples](golden_clips/README.md) · [Automation contract](docs/MACHINE_CONTRACT.md) · [Evaluation results](benchmarks/README.md) · [Release candidate](docs/RELEASE_CANDIDATE.md)
 
 | Your intent | What the CLI does | Next step |
 |---|---|---|
@@ -46,20 +46,37 @@ status=PASS
 gate=ENFORCE
 ```
 
-The included clips are **synthetic OpenCV fixtures**, not real AI-video outputs. Try `golden_clips/pan_authorized.mp4` with `--intent static` for a FAIL, then use `--intent authorized_camera` for NEEDS_REVIEW. Replace the fixture path with your own MP4 or MOV.
+The included clips are **synthetic OpenCV fixtures**, not real AI-video outputs. The sparse legacy `golden_clips/pan_authorized.mp4` now returns NEEDS_REVIEW (exit 2) because its matches fail geometric consistency. Run `python scripts/evaluate_regressions.py --output regression-results.json` for reproducible textured pan/return-pan FAIL cases. Replace the fixture path with your own MP4 or MOV.
 
 ## Read the result correctly
 
 | Exit code | Status | Meaning |
 |---|---|---|
-| 0 | PASS | The sampled proxy is within the threshold for static intent |
-| 0 | NEEDS_REVIEW | Intentional motion is reported, never auto-approved |
+| 0 | PASS | All decoded frames satisfy the measured proxy policy for static intent |
+| 0 | NEEDS_REVIEW | Intentional motion or an opt-in sampled preview is reported, never auto-approved |
 | 1 | FAIL | Static intent exceeds the selected threshold |
 | 2 | NEEDS_REVIEW or error | Insufficient features, unreadable video, invalid options, or missing dependencies |
 
-**Do not treat exit 0 alone as approval.** Check both `status` and `gate` when integrating with automation. Low texture, failed frame decoding, or insufficient tracked features cannot produce PASS. Each sampled frame after the first needs at least eight ORB matches to the first frame, and each adjacent sample pair needs at least eight flow tracks.
+**Do not treat exit 0 alone as approval.** Check both `status` and `gate` when integrating with automation. Low texture, failed frame decoding, or insufficient tracked features cannot produce PASS. Each sampled frame after the first needs at least eight geometrically consistent ORB inliers to the first frame (at least 50% of the best 50 matches), and each adjacent pair needs at least eight flow tracks with forward/backward disagreement of at most one pixel.
 
-The proxy takes the larger of sampled adjacent-frame median optical flow and maximum first-to-sampled-frame ORB displacement, normalized by frame width. Comparing every sample against the first catches movement that returns to its start. It can still miss motion between samples, and ORB mismatches can inflate results. A PASS is a screening result, not proof of camera lock or identity preservation. Increase `--sample-frames` when useful, and inspect the clip visually.
+The proxy takes the larger of sampled adjacent-frame median optical flow and maximum first-to-sampled-frame ORB displacement, normalized by frame width. Comparing every sample against the first catches movement that returns to its start. ORB mismatches can still inflate results; geometric checks do not identify background versus subject. A PASS is a screening result, not proof of camera lock or identity preservation. Every frame is decoded by default (`--all-frames` is an explicit alias). `--sample-frames N` opts into a faster preview that cannot auto-approve; inspect the clip visually. The default full-frame mode reads frames sequentially without retaining the entire video in memory.
+
+## Use in a local review pipeline
+
+```sh
+python scripts/measure_frame_drift.py --video golden_clips/static_hold.mp4 --format json --require-pass --all-frames
+```
+
+`--require-pass` gives exit 0 **only** for PASS/ENFORCE. JSON includes a boolean
+`approved`, schema version, actual sample indices and evidence counts; errors
+cannot silently become zero drift. [Contract and Python example](docs/MACHINE_CONTRACT.md).
+
+In the stress suite, 24-frame sampling misses an isolated 20% displacement.
+The preview therefore returns NEEDS_REVIEW even when its sampled metric is low;
+the default full decode detects the excursion and returns FAIL. The raw
+`sampled_proxy_status` is diagnostic only and never grants approval.
+Four CC BY 3.0 open-animation excerpts all required review under strict geometry;
+this is a current usability limitation, not a successful real-video benchmark.
 
 ## Plan the shot before generating
 
@@ -88,6 +105,6 @@ Useful contributions: a redistributable real video with your camera intent, obse
 
 ## Project status and license
 
-Early public tool with synthetic regression fixtures. Real-video accuracy and subject-retention benchmarks remain open work. Earlier internal SOP review scores do not establish public adoption, benchmark accuracy, or independent endorsement. See [release-readiness work](docs/LAUNCH_CHECKLIST.md).
+Early public tool with synthetic regression fixtures. Real AI-video accuracy and subject-retention benchmarks remain open work. An authored open-animation probe and synthetic stress results are available in [benchmarks](benchmarks/README.md). Earlier internal SOP review scores do not establish public adoption, benchmark accuracy, or independent endorsement. See [release-readiness work](docs/LAUNCH_CHECKLIST.md).
 
 MIT for this repository's original text and scripts. Referenced animation libraries have their own licenses; see [sources](references/sources.md). The historical brightness-centroid implementation remains in `scripts/measure_frame_drift_brightness_legacy.py` for comparison.

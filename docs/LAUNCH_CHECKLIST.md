@@ -1,128 +1,36 @@
-# Camera Motion Language — Launch / distribution checklist
+# Camera Motion Language release checklist
 
-Document type: Project adaptation of shared launch pattern  
-Status: Living  
-Date: 2026-09-26 (Asia/Taipei)  
-Repo: `leonininder/camera-motion-language`
+This checklist covers the experimental CLI candidate described in
+[RELEASE_CANDIDATE.md](RELEASE_CANDIDATE.md). It does not certify market demand
+or general real-video accuracy. Earlier private SOP scores, brightness-centroid
+measurements and unverified install-time promises are not release evidence.
 
-**Shared pattern (Jarvis → Leon mapping):** Leon LLM Wiki  
-`03_wiki/process/launch_distribution_checklist_from_jev_jarvis_en.md`  
-(also mirrored in remember-me as `docs/LAUNCH_CHECKLIST.md`).
+## Candidate checks
 
-This note adapts that shell to CML (Hermes skill + drift gate + SYNTHETIC goldens), not a consumer APK.
+- [x] Clear purpose, limits and English/Traditional Chinese onboarding.
+- [x] Full decode by default; sampled preview never grants approval.
+- [x] JSON version/exit contract and conservative error handling documented.
+- [x] Fresh Windows Python environment: documented static demo and 14 tests pass.
+- [x] Reproducible positive and negative synthetic cases, including omitted-frame motion.
+- [x] Four fixed open-animation excerpts with attribution; all abstentions retained.
+- [x] Bug/first-use issue form, metadata suggestions, targeted draft and empty observation table.
+- [ ] Bind the final reviewed diff to its publication commit and record it.
+- [ ] Publish candidate files, then verify links and commands from the public revision.
+- [ ] Publish/run the CI matrix through an authorized workflow write path.
 
-Wiki project mirror: `04_projects/Camera_Motion_Language/launch_distribution_checklist_en.md`
+The last CI item remains explicit: this candidate's measured platform is the
+Windows/Python combination in its receipt. Do not claim the matrix has run.
+The metadata file and launch draft do not automatically update GitHub settings
+or send a community message.
 
-**Honesty rule:** never invent stars, sponsors, live H3 demo GIFs, or “every Static PASS.” Mark missing proof `TODO` or omit. No fake demo media.
+## Release observations, separate from the gate above
 
----
+- Record actual first-use attempts, problems and voluntary repeat use.
+- Keep views, clones and stars as separate measurements; clones may be automated.
+- Broader accuracy work needs rights-cleared AI video and independently specified
+  labels. Do not advertise precision/recall or camera/subject separation meanwhile.
+- Revisit the comparison after new evidence; do not delete difficult examples.
 
-## CML pitch (≤15 words)
-
-Split keyed vs sampled camera; default Static Shot; enforce 8% drift.
-
----
-
-## Installable artifact &lt;2 min
-
-Demo artifact = **synthetic goldens** + **one drift command** (not an APK):
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install opencv-python-headless numpy
-.venv/bin/python scripts/measure_frame_drift.py \
-  --video golden_clips/static_hold.mp4 \
-  --intent static --threshold-pct 8
-```
-
-Above-the-fold media: terminal PASS/FAIL lines + filled shot-card (`references/shot_card_schema.md`) — label **SYNTHETIC** vs **MEASURED H3** honestly. Do **not** invent a hero GIF.
-
----
-
-## Surfaces (above the fold)
-
-| Surface | Path |
-|---------|------|
-| Skill SOP | `SKILL.md` |
-| Drift gate CLI | `scripts/measure_frame_drift.py` |
-| Goldens (SYNTHETIC) | `golden_clips/` |
-| Shot-card schema | `references/shot_card_schema.md` |
-| Features / non-goals | `FEATURES.md` |
-| Launch checklist | this file |
-| Wiki home | Leon LLM Wiki `04_projects/Camera_Motion_Language/` |
-
-CML does **not** claim Built-with-Jev unless a future gate literally calls System One.
-
----
-
-## Sponsor / social-proof
-
-Omit or `TODO` — never invent logos. Review scores (Justin / David) may be cited only as written for the LOCKED SOP pack (David R2 9.7 / Justin Sun R3 9.5 on 2026-09-24). A stable-quality claim still needs a fresh dual ≥9.5 review. Leon authorized publishing the 2026-09-27 improvements as an experimental version; that authorization does not change the unmet quality scores.
-
----
-
-## Community funnel
-
-GitHub Issues on this repo. Wiki remains the durable operator home. Optional 公众号 only with a real published funnel.
-
----
-
-## Fear FAQ (CML)
-
-| Fear | Honest answer |
-|------|----------------|
-| Does the 8% gate prove every H3 Static PASS? | **No.** MEASURED lock quartet was 3 FAIL / 1 PASS; gate fires. |
-| Are goldens H3 outputs? | **No** — `golden_clips/` are SYNTHETIC unless labeled otherwise. |
-| Can I “fix” FAIL with vidstab / letterbox / crop? | **Forbidden.** Redo prompt or stills. |
-| Is the metric pure camera-only? | **No** — `metric_kind=global_feature_proxy`; subject motion can false-FAIL. |
-
----
-
-## Contributor / adopter hook (without full wiki)
-
-Minimum pack:
-
-1. `SKILL.md` (SOP)
-2. `references/shot_card_schema.md` + one filled example (see Publish / share in `SKILL.md`)
-3. `scripts/measure_frame_drift.py`
-4. One golden + expected PASS/FAIL line (`golden_clips/README.md`)
-5. Pointer to this checklist / shared Jarvis→Leon pattern
-
----
-
-## Distribution surface (architecture)
-
-Launch / share shell follows the shared Jarvis→Leon checklist. Do not rewrite LOCKED architecture claims for virality; keep SYNTHETIC vs MEASURED labels. Skill status LOCKED date ≠ product Release.
-
----
-
-
----
-
-## GitHub topics (applied 2026-09-26)
-
-Applied via `gh repo edit leonininder/camera-motion-language --add-topic ...`:
-
-`camera-motion`, `keyed-camera`, `sampled-i2v`, `drift-gate`, `minimax-h3`, `shot-card`, `python`, `openai-skill`, `hermes-skill`, `i2v`, `video-generation`, `computer-vision`
-
-## Pre-flight (CML)
-
-- [x] Pitch visible in README / skill header
-- [x] One-command drift demo documented
-- [x] Goldens labeled SYNTHETIC
-- [x] Evidence honesty (MEASURED vs claim)
-- [x] Share pack listed for adopters
-- [x] Link to shared process checklist (wiki path above)
-- [x] Traditional Chinese onboarding added at `docs/README.zh-TW.md`; English SOP remains canonical
-- [ ] Dual review PASS (David + Justin Sun independently ≥9.5) on this launch-shell change set — **required before merge**
-
-## 2026-09-27 adoption revision (local, pending independent review)
-
-The public README now leads with the creator's task, includes Windows and POSIX commands, and no longer uses internal persona scores as public social proof. A Traditional Chinese entry and dependency file are included. The CLI rejects invalid parameters and returns exit 2 / NEEDS_REVIEW when sampled frames cannot be decoded or lack enough trackable features. Regression tests cover policy output and the previous featureless false PASS. Local regression tests are available. Publishing and running a CI matrix remains pending.
-
-Outstanding release gates:
-- [ ] Independently review the exact patch; older SOP scores do not transfer.
-- [ ] Run the CI matrix on supported hosts.
-- [ ] Publish redistributable real AI-video examples with explicit permissions and human camera/subject labels.
-- [ ] Measure false positives/negatives against that labeled set; do not advertise the proxy as a subject-retention detector.
-- [ ] Have independent first-time users complete setup; record observed completion and blockers.
-- [ ] Track relevant visits, successful demos and repeat use before drawing conclusions from stars.
+The earlier sampled/brightness methods are historical implementations, not the
+current contract. Preserve their dated records when comparing versions, and use
+current JSON and raw benchmark files for this candidate.

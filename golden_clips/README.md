@@ -1,3 +1,5 @@
+> Current behavior update (2026-09-27): the sparse `pan_authorized.mp4` now returns NEEDS_REVIEW / exit 2 because at least one reference pair fails the new geometric-inlier requirement. Historical numbers below are preserved as dated evidence, not current expected output. See `docs/MACHINE_CONTRACT.md` and `scripts/evaluate_regressions.py` for current cases.
+
 # Golden clips — Camera Motion Language drift gate
 
 Document type: Operator fixture guide  
@@ -6,7 +8,7 @@ Label: **SYNTHETIC** — do not treat measured numbers below as MiniMax H3 tok/s
 
 ## What these prove
 
-The drift script (`scripts/measure_frame_drift.py`) measures a **global feature-motion proxy** (optical-flow median + ORB first/last). It is **not** a pure camera-only meter: subject motion can raise the metric under a locked Static Shot; authorized camera verbs also raise it.
+The drift script (`scripts/measure_frame_drift.py`) measures a **global feature-motion proxy** (optical-flow median + maximum ORB first-to-sample inlier displacement). It is **not** a pure camera-only meter: subject motion can raise the metric under a locked Static Shot; authorized camera verbs also raise it.
 
 ## Three synthetic tests
 
@@ -14,7 +16,7 @@ The drift script (`scripts/measure_frame_drift.py`) measures a **global feature-
 |---|---|---|
 | `static_hold.mp4` | `--intent static` | near-identical frames → **PASS** ≪8% |
 | `subject_wiggle_static_cam.mp4` | `--intent static` | subject moves, cam locked → proxy **may FAIL**; vision must confirm Static Shot |
-| `pan_authorized.mp4` | `--intent authorized_camera` | large global shift → high drift; **REPORT_ONLY** (`gate=REPORT_ONLY`, `review_required=true`, exit 0) |
+| `pan_authorized.mp4` | `--intent authorized_camera` | sparse/inconsistent matching → **NEEDS_REVIEW** (`gate=INSUFFICIENT_EVIDENCE`, exit 2) |
 
 ### How to generate
 
